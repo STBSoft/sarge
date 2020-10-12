@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: com.github.stbsoft.sarge\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-10-10 21:40+0100\n"
+"POT-Creation-Date: 2020-10-12 01:33+0100\n"
 "PO-Revision-Date: 2020-10-10 17:15+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -16,6 +16,14 @@ msgstr ""
 "Content-Type: text/plain; charset=ASCII\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/Components/PanelGrid.vala:29
+msgid "Left"
+msgstr ""
+
+#: src/Components/PanelGrid.vala:31
+msgid "Right"
+msgstr ""
 
 #: data/sarge.desktop.in:3 data/sarge.appdata.xml.in:6
 msgid "Sarge"
@@ -44,6 +52,3 @@ msgstr ""
 #: data/sarge.appdata.xml.in:9
 msgid "Maybe not as powerful as a Commander, but the Sarge gets the job done"
 msgstr ""
-
-#~ msgid "Sarge Says Hi"
-#~ msgstr "Az Ormester Udvozol"

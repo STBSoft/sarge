@@ -23,7 +23,7 @@ public class Sarge.PanelGrid : Gtk.Grid {
     public enum Which {
         LEFT, RIGHT;
 
-        public string to_string() {
+        public string to_string () {
             switch (this) {
                 case LEFT:
                     return _("Left");
