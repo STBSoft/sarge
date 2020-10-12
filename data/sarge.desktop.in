@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Sarge
+GenericName=File Manager
+Comment=Two-panel file manager
+Categories=Utility;
+Exec=com.github.stbsoft.sarge
+Icon=application-default-icon
+Terminal=false
+Type=Application
+Keywords=File;Manager;Panel;Panels;Commander;

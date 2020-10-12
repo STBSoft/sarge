@@ -1,0 +1,4 @@
+src/SargeApp.vala
+src/Components/PanelGrid.vala
+data/sarge.desktop.in
+data/sarge.appdata.xml.in

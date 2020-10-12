@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema path="/com/github/stbsoft/sarge/" id="com.github.stbsoft.sarge">
+    <key name="width" type="i">
+      <default>800</default>
+      <summary>Width</summary>
+      <description>The width of the main winwow</description>
+    </key>
+    <key name="height" type="i">
+      <default>500</default>
+      <summary>Height</summary>
+      <description>The height of the main winwow</description>
+    </key>
+  </schema>
+</schemalist>

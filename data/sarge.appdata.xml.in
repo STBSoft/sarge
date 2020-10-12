@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2020 Tibor Sandor <sandort84@gmail.com> -->
+<component type="desktop">
+  <id>com.github.stbsoft.sarge</id>
+  <metadata_license>CC0</metadata_license>
+  <name>Sarge</name>
+  <summary>Two-Panel File Manager</summary>
+  <description>
+    <p>Maybe not as powerful as a Commander, but the Sarge gets the job done</p>
+  </description>
+</component>

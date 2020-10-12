@@ -1,0 +1,46 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the com.github.stbsoft.sarge package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: com.github.stbsoft.sarge\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-10-10 21:40+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: data/sarge.desktop.in:3 data/sarge.appdata.xml.in:6
+msgid "Sarge"
+msgstr ""
+
+#: data/sarge.desktop.in:4
+msgid "File Manager"
+msgstr ""
+
+#: data/sarge.desktop.in:5
+msgid "Two-panel file manager"
+msgstr ""
+
+#: data/sarge.desktop.in:8
+msgid "application-default-icon"
+msgstr ""
+
+#: data/sarge.desktop.in:10
+msgid "File;Manager;Panel;Panels;Commander;"
+msgstr ""
+
+#: data/sarge.appdata.xml.in:7
+msgid "Two-Panel File Manager"
+msgstr ""
+
+#: data/sarge.appdata.xml.in:9
+msgid "Maybe not as powerful as a Commander, but the Sarge gets the job done"
+msgstr ""
