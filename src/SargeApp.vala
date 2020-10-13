@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018 STBSoft (https://github.com/orgs/STBSoft)
+* Copyright (c) 2011-2020 STBSoft (https://github.com/orgs/STBSoft)
 *
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public
@@ -36,6 +36,7 @@ public class Sarge.SargeApp : Gtk.Application {
 
         var width = settings.get_int ("width");
         var height = settings.get_int ("height");
+        var show_hidden_files = settings.get_boolean ("show-hidden-files");
 
         var main_window = new Gtk.ApplicationWindow (this) {
             default_width = width,
@@ -49,15 +50,15 @@ public class Sarge.SargeApp : Gtk.Application {
             column_homogeneous = true
         };
 
-        var left = new Sarge.PanelGrid (Sarge.PanelGrid.Which.LEFT, home);
-        stdout.printf ("%s\n", left.get_state ().to_string ());
-        var blue = new Gdk.RGBA ();
-        blue.blue = 1;
-        blue.red = 0;
-        blue.green = 0;
-        blue.alpha = 1;
-        left.override_background_color (Gtk.StateFlags.NORMAL, blue);
-        var right = new Sarge.PanelGrid (Sarge.PanelGrid.Which.RIGHT, home);
+        var left = new Sarge.PanelGrid (Sarge.PanelGrid.Which.LEFT, home, show_hidden_files);
+        //  stdout.printf ("%s\n", left.get_state ().to_string ());
+        //  var blue = new Gdk.RGBA ();
+        //  blue.blue = 1;
+        //  blue.red = 0;
+        //  blue.green = 0;
+        //  blue.alpha = 1;
+        //  left.override_background_color (Gtk.StateFlags.NORMAL, blue);
+        var right = new Sarge.PanelGrid (Sarge.PanelGrid.Which.RIGHT, home, show_hidden_files);
         panel_grid.attach (left, 0, 0, 1, 1);
         panel_grid.attach_next_to (right, left, Gtk.PositionType.RIGHT, 1, 1);
 

@@ -1,7 +1,7 @@
 # List of source files
 sarge_files = files (
     'SargeApp.vala',
-    'components/Panel.vala'
+    'Components/PanelGrid.vala'
 )
 
 # Create a new executable, list the files we want to compile, 

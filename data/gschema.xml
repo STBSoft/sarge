@@ -11,5 +11,10 @@
       <summary>Height</summary>
       <description>The height of the main winwow</description>
     </key>
+    <key name="show-hidden-files" type="b">
+      <default>false</default>
+      <summary>Show hidden files</summary>
+      <description>Whether to list hidden files or not in a directory</description>
+    </key>
   </schema>
 </schemalist>
