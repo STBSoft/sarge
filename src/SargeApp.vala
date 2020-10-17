@@ -19,6 +19,8 @@
 * Authored by: Tibor Sandor <sandort84@gmail.com>
 */
 
+using Sarge.Components;
+
 public class Sarge.SargeApp : Gtk.Application {
 
     public const string APPLICATION_ID = "com.github.stbsoft.sarge";
@@ -50,7 +52,7 @@ public class Sarge.SargeApp : Gtk.Application {
             column_homogeneous = true
         };
 
-        var left = new Sarge.PanelGrid (Sarge.PanelGrid.Which.LEFT, home, show_hidden_files);
+        var left = new PanelGrid (PanelGrid.Which.LEFT, home, show_hidden_files);
         //  stdout.printf ("%s\n", left.get_state ().to_string ());
         //  var blue = new Gdk.RGBA ();
         //  blue.blue = 1;
@@ -58,7 +60,7 @@ public class Sarge.SargeApp : Gtk.Application {
         //  blue.green = 0;
         //  blue.alpha = 1;
         //  left.override_background_color (Gtk.StateFlags.NORMAL, blue);
-        var right = new Sarge.PanelGrid (Sarge.PanelGrid.Which.RIGHT, home, show_hidden_files);
+        var right = new PanelGrid (PanelGrid.Which.RIGHT, home, show_hidden_files);
         panel_grid.attach (left, 0, 0, 1, 1);
         panel_grid.attach_next_to (right, left, Gtk.PositionType.RIGHT, 1, 1);
 

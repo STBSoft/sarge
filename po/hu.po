@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: com.github.stbsoft.sarge\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-10-12 01:33+0100\n"
+"POT-Creation-Date: 2020-10-17 22:56+0100\n"
 "PO-Revision-Date: 2020-10-10 17:15+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -23,6 +23,14 @@ msgstr ""
 
 #: src/Components/PanelGrid.vala:31
 msgid "Right"
+msgstr ""
+
+#: src/Components/PanelGrid.vala:43
+msgid "Name"
+msgstr ""
+
+#: src/Components/PanelGrid.vala:45
+msgid "Size"
 msgstr ""
 
 #: data/sarge.desktop.in:3 data/sarge.appdata.xml.in:6
