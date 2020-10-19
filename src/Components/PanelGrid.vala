@@ -80,9 +80,13 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
     private Gtk.TreeView create_view () {
         var list = new Gtk.ListStore (2, typeof (string), typeof (string));
         list.set_sort_column_id (0, Gtk.SortType.ASCENDING); // TODO: sort column and direction from settings
+
+        list.set_default_sort_func ((view, a, b) => {
+
+        });
+
         var internal_view = new Gtk.TreeView () {
             expand = true,
-            headers_clickable = true,
             enable_grid_lines = Gtk.TreeViewGridLines.VERTICAL,
             model = list
         };
@@ -92,13 +96,15 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
         };
         var name_column = new Gtk.TreeViewColumn.with_attributes (
             Column.NAME.humanise (), name_renderer, "text", Column.NAME) {
-            expand = true
+            expand = true,
+            sort_indicator = true
         };
-
+        name_column.clicked.connect (on_column_clicked);
         internal_view.append_column (name_column);
         internal_view.insert_column_with_attributes (
             -1, Column.SIZE.humanise (), new Gtk.CellRendererText (), "text", Column.SIZE);
 
+        internal_view.headers_clickable = true;
         return internal_view;
     }
 
@@ -136,5 +142,20 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
             var item = items.nth_data (i);
             list.insert_with_values (out iter, -1, Column.NAME, item.name, Column.SIZE, item.size);
         }
+    }
+
+    private void on_column_clicked (Gtk.TreeViewColumn col) {
+        stdout.printf ("%s\n", col.sort_order.to_string ());
+        var list = (Gtk.ListStore) view.model;
+        int sort_column;
+        Gtk.SortType sort_type;
+        list.get_sort_column_id (out sort_column, out sort_type);
+        if (sort_type == Gtk.SortType.ASCENDING) {
+            sort_type = Gtk.SortType.DESCENDING;
+        } else {
+            sort_type = Gtk.SortType.ASCENDING;
+        }
+        list.set_sort_column_id (sort_column, sort_type);
+        col.sort_order = sort_type;
     }
 }
