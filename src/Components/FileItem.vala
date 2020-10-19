@@ -23,15 +23,21 @@ public class Sarge.Components.FileItem : Object {
 
     public Icon icon {get; set;}
     public string name {get; set;}
+    public string path {get; set;}
     public string size {get; set;}
 
     public bool is_dir {get; set;}
+    public bool is_parent {get; set;}
 
-    public FileItem (FileInfo info) {
+    private FileItem () {
+    }
+
+    public FileItem.for_file_info (FileInfo info, File file) {
         icon = info.get_icon ();
         name = info.get_name ();
-
         is_dir = info.get_file_type () == FileType.DIRECTORY;
+        is_parent = false;
+        path = file.get_path ();
 
         if (is_dir) {
             size = "DIR";
@@ -40,4 +46,12 @@ public class Sarge.Components.FileItem : Object {
         }
     }
 
+    public FileItem.for_parent_of (File directory) {
+        var parent_dir = directory.get_parent ();
+        name = "..";
+        is_dir = true;
+        is_parent = true;
+        size = "DIR";
+        path = parent_dir.get_path ();
+    }
 }

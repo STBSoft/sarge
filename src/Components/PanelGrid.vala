@@ -115,14 +115,16 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
             if (dir_info.get_file_type () != FileType.DIRECTORY) {
                 directory = File.new_for_path (home);
             }
-
+            if (directory.has_parent (null)) {
+                items.append (new FileItem.for_parent_of (directory));
+            }
             var enumerator = directory.enumerate_children ("standard::*", FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null);
             FileInfo info = null;
             while ((info = enumerator.next_file (null)) != null) {
                 if (!show_hidden_files && info.get_is_hidden ()) {
                     continue;
                 }
-                items.append (new FileItem (info));
+                items.append (new FileItem.for_file_info (info, directory.get_child (info.get_name ())));
             }
         } catch (Error e) {
             stderr.printf ("Error: %s\n", e.message);
