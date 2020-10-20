@@ -21,13 +21,16 @@
 
 public class Sarge.Components.FileItem : Object {
 
+    // display attributes
     public Icon icon {get; set;}
     public string name {get; set;}
-    public string path {get; set;}
     public string size {get; set;}
 
+    // internal attributes
+    public string path {get; set;}
     public bool is_dir {get; set;}
     public bool is_parent {get; set;}
+    public int64 numeric_size {get; set;}
 
     private FileItem () {
     }
@@ -41,8 +44,10 @@ public class Sarge.Components.FileItem : Object {
 
         if (is_dir) {
             size = "DIR";
+            numeric_size = -1;
         } else {
-            size = format_size (info.get_size (), FormatSizeFlags.DEFAULT);
+            numeric_size = info.get_size ();
+            size = format_size (numeric_size, FormatSizeFlags.DEFAULT);
         }
     }
 
@@ -53,5 +58,6 @@ public class Sarge.Components.FileItem : Object {
         is_parent = true;
         size = "DIR";
         path = parent_dir.get_path ();
+        numeric_size = -1;
     }
 }

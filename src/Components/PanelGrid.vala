@@ -53,11 +53,13 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
     public bool show_hidden_files {get; set;}
     private Gtk.TreeView view {get; set;}
     private string dir {get; set;}
+    private HashTable<string, FileItem> items {get; set;}
 
     public PanelGrid (Which which, string home, bool show_hidden_files) {
         this.which = which;
         this.home = home;
         this.show_hidden_files = show_hidden_files;
+        items = new HashTable<string, FileItem> (str_hash, str_equal);
         expand = true;
         orientation = Gtk.Orientation.VERTICAL;
         set_has_window (false);
@@ -81,9 +83,8 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
         var list = new Gtk.ListStore (2, typeof (string), typeof (string));
         list.set_sort_column_id (0, Gtk.SortType.ASCENDING); // TODO: sort column and direction from settings
 
-        list.set_default_sort_func ((view, a, b) => {
-
-        });
+        list.set_sort_func (Column.NAME, sort_by_name);
+        list.set_sort_func (Column.SIZE, sort_by_size);
 
         var internal_view = new Gtk.TreeView () {
             expand = true,
@@ -95,23 +96,31 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
             ellipsize = Pango.EllipsizeMode.MIDDLE
         };
         var name_column = new Gtk.TreeViewColumn.with_attributes (
-            Column.NAME.humanise (), name_renderer, "text", Column.NAME) {
+            Column.NAME.humanise (), name_renderer, "text", Column.NAME
+        ) {
             expand = true,
             sort_indicator = true
         };
-        name_column.clicked.connect (on_column_clicked);
+        name_column.set_sort_column_id (Column.NAME);
         internal_view.append_column (name_column);
-        internal_view.insert_column_with_attributes (
-            -1, Column.SIZE.humanise (), new Gtk.CellRendererText (), "text", Column.SIZE);
 
-        internal_view.headers_clickable = true;
+        var size_renderer = new Gtk.CellRendererText ();
+        var size_column = new Gtk.TreeViewColumn.with_attributes (
+            Column.SIZE.humanise (), size_renderer, "text", Column.SIZE
+        ) {
+            sort_indicator = true
+        };
+        size_column.set_sort_column_id (Column.SIZE);
+        internal_view.append_column (size_column);
+
+        //  internal_view.headers_clickable = true;
         return internal_view;
     }
 
     private void update_view () {
         var list = (Gtk.ListStore) view.model;
         list.clear ();
-        var items = new List<FileItem> ();
+        items.remove_all ();
         try {
             var directory = File.new_for_path (dir);
             if (!directory.query_exists ()) {
@@ -122,7 +131,8 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
                 directory = File.new_for_path (home);
             }
             if (directory.has_parent (null)) {
-                items.append (new FileItem.for_parent_of (directory));
+                var item = new FileItem.for_parent_of (directory);
+                items.insert (item.name, item);
             }
             var enumerator = directory.enumerate_children ("standard::*", FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null);
             FileInfo info = null;
@@ -130,7 +140,8 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
                 if (!show_hidden_files && info.get_is_hidden ()) {
                     continue;
                 }
-                items.append (new FileItem.for_file_info (info, directory.get_child (info.get_name ())));
+                var item = new FileItem.for_file_info (info, directory.get_child (info.get_name ()));
+                items.insert (item.name, item);
             }
         } catch (Error e) {
             stderr.printf ("Error: %s\n", e.message);
@@ -138,24 +149,73 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
         }
 
         Gtk.TreeIter iter;
-        for (int i = 0; i < items.length (); i++) {
-            var item = items.nth_data (i);
+        var values = items.get_values ();
+        for (int i = 0; i < values.length (); i++) {
+            var item = values.nth_data (i);
             list.insert_with_values (out iter, -1, Column.NAME, item.name, Column.SIZE, item.size);
         }
     }
 
-    private void on_column_clicked (Gtk.TreeViewColumn col) {
-        stdout.printf ("%s\n", col.sort_order.to_string ());
-        var list = (Gtk.ListStore) view.model;
+    private int sort_by_name (Gtk.TreeModel list, Gtk.TreeIter a, Gtk.TreeIter b) {
+        var item_a = get_item (list, a);
+        var item_b = get_item (list, b);
+        var basic_result = basic_compare (item_a, item_b, (Gtk.ListStore) list);
+        if (basic_result != 0) {
+            return basic_result;
+        }
+        var name_a = item_a.name.normalize ();
+        var name_b = item_b.name.normalize ();
+        if (name_a < name_b) {
+            return -1;
+        }
+        return 1;
+    }
+
+    private int sort_by_size (Gtk.TreeModel list, Gtk.TreeIter a, Gtk.TreeIter b) {
+        var item_a = get_item (list, a);
+        var item_b = get_item (list, b);
+        var basic_result = basic_compare (item_a, item_b, (Gtk.ListStore) list);
+        if (basic_result != 0) {
+            return basic_result;
+        }
+        var size_a = item_a.numeric_size;
+        var size_b = item_b.numeric_size;
+        if (size_a < size_b) {
+            return -1;
+        }
+        if (size_a > size_b) {
+            return 1;
+        }
+        return 0;
+    }
+
+    private static int basic_compare (FileItem item_a, FileItem item_b, Gtk.ListStore list) {
+        var reverse = 1;
         int sort_column;
         Gtk.SortType sort_type;
         list.get_sort_column_id (out sort_column, out sort_type);
-        if (sort_type == Gtk.SortType.ASCENDING) {
-            sort_type = Gtk.SortType.DESCENDING;
-        } else {
-            sort_type = Gtk.SortType.ASCENDING;
+        if (sort_type == Gtk.SortType.DESCENDING) {
+            reverse = -1;
         }
-        list.set_sort_column_id (sort_column, sort_type);
-        col.sort_order = sort_type;
+        if (item_a.is_parent) {
+            return reverse * -1;
+        }
+        if (item_b.is_parent) {
+            return reverse * 1;
+        }
+        if (item_a.is_dir && !item_b.is_dir) {
+            return reverse * -1;
+        }
+        if (!item_a.is_dir && item_b.is_dir) {
+            return reverse * 1;
+        }
+        return 0;
+    }
+
+    private FileItem get_item (Gtk.TreeModel model, Gtk.TreeIter iter) {
+        Value name;
+        model.get_value (iter, Column.NAME, out name);
+        var item = items.get ((string) name);
+        return item;
     }
 }
