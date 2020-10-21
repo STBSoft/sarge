@@ -35,12 +35,14 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
     }
 
     public enum Column {
-        NAME, SIZE;
+        NAME, EXT, SIZE;
 
         public string humanise () {
             switch (this) {
                 case NAME:
                     return _("Name");
+                case EXT:
+                    return _("Ext");
                 case SIZE:
                     return _("Size");
             }
@@ -63,7 +65,7 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
         expand = true;
         orientation = Gtk.Orientation.VERTICAL;
         set_has_window (false);
-        dir = home + "/Projects/sarge";  // TODO: dir from saved history in settings
+        dir = home + "/Downloads";  // TODO: dir from saved history in settings
         var label = new Gtk.Label (dir);
         add (label);
         build_contents ();
@@ -80,11 +82,12 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
     }
 
     private Gtk.TreeView create_view () {
-        var list = new Gtk.ListStore (2, typeof (string), typeof (string));
+        var list = new Gtk.ListStore (3, typeof (string), typeof (string), typeof (string));
         list.set_sort_column_id (0, Gtk.SortType.ASCENDING); // TODO: sort column and direction from settings
 
-        list.set_sort_func (Column.NAME, sort_by_name);
-        list.set_sort_func (Column.SIZE, sort_by_size);
+        list.set_sort_func (Column.NAME, sort_by_name_func);
+        list.set_sort_func (Column.EXT, sort_by_ext_func);
+        list.set_sort_func (Column.SIZE, sort_by_size_func);
 
         var internal_view = new Gtk.TreeView () {
             expand = true,
@@ -101,8 +104,20 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
             expand = true,
             sort_indicator = true
         };
+        name_column.set_cell_data_func (name_renderer, name_without_ext_func);
         name_column.set_sort_column_id (Column.NAME);
         internal_view.append_column (name_column);
+
+        var ext_renderer = new Gtk.CellRendererText ();
+        var ext_column = new Gtk.TreeViewColumn.with_attributes (
+            Column.EXT.humanise (), ext_renderer, "text", Column.EXT
+        ) {
+            sort_indicator = true
+        };
+        ext_column.set_cell_data_func (ext_renderer, show_only_ext_func);
+        ext_column.set_sort_column_id (Column.EXT);
+        internal_view.append_column (ext_column);
+
 
         var size_renderer = new Gtk.CellRendererText ();
         var size_column = new Gtk.TreeViewColumn.with_attributes (
@@ -156,7 +171,7 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
         }
     }
 
-    private int sort_by_name (Gtk.TreeModel list, Gtk.TreeIter a, Gtk.TreeIter b) {
+    private int sort_by_name_func (Gtk.TreeModel list, Gtk.TreeIter a, Gtk.TreeIter b) {
         var item_a = get_item (list, a);
         var item_b = get_item (list, b);
         var basic_result = basic_compare (item_a, item_b, (Gtk.ListStore) list);
@@ -171,7 +186,25 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
         return 1;
     }
 
-    private int sort_by_size (Gtk.TreeModel list, Gtk.TreeIter a, Gtk.TreeIter b) {
+    private int sort_by_ext_func (Gtk.TreeModel list, Gtk.TreeIter a, Gtk.TreeIter b) {
+        var item_a = get_item (list, a);
+        var item_b = get_item (list, b);
+        var basic_result = basic_compare (item_a, item_b, (Gtk.ListStore) list);
+        if (basic_result != 0) {
+            return basic_result;
+        }
+        var ext_a = item_a.ext;
+        var ext_b = item_b.ext;
+        if (ext_a < ext_b) {
+            return -1;
+        }
+        if (ext_a > ext_b) {
+            return 1;
+        }
+        return sort_by_name_func (list, a, b);
+    }
+
+    private int sort_by_size_func (Gtk.TreeModel list, Gtk.TreeIter a, Gtk.TreeIter b) {
         var item_a = get_item (list, a);
         var item_b = get_item (list, b);
         var basic_result = basic_compare (item_a, item_b, (Gtk.ListStore) list);
@@ -217,5 +250,15 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
         model.get_value (iter, Column.NAME, out name);
         var item = items.get ((string) name);
         return item;
+    }
+
+    private void name_without_ext_func (Gtk.CellLayout name_layout, Gtk.CellRenderer name_renderer,
+            Gtk.TreeModel list, Gtk.TreeIter iter) {
+        name_renderer.set_property ("text", get_item (list, iter).name_without_ext);
+    }
+
+    private void show_only_ext_func (Gtk.CellLayout ext_layout, Gtk.CellRenderer ext_renderer,
+            Gtk.TreeModel list, Gtk.TreeIter iter) {
+        ext_renderer.set_property ("text", get_item (list, iter).ext);
     }
 }

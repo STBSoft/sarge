@@ -25,12 +25,14 @@ public class Sarge.Components.FileItem : Object {
     public Icon icon {get; set;}
     public string name {get; set;}
     public string size {get; set;}
+    public string ext {get; set;}
 
     // internal attributes
     public string path {get; set;}
     public bool is_dir {get; set;}
     public bool is_parent {get; set;}
     public int64 numeric_size {get; set;}
+    public string name_without_ext {get; set;}
 
     private FileItem () {
     }
@@ -38,9 +40,11 @@ public class Sarge.Components.FileItem : Object {
     public FileItem.for_file_info (FileInfo info, File file) {
         icon = info.get_icon ();
         name = info.get_name ();
+        ext = "";
         is_dir = info.get_file_type () == FileType.DIRECTORY;
         is_parent = false;
         path = file.get_path ();
+        name_without_ext = name;
 
         if (is_dir) {
             size = "DIR";
@@ -48,6 +52,10 @@ public class Sarge.Components.FileItem : Object {
         } else {
             numeric_size = info.get_size ();
             size = format_size (numeric_size, FormatSizeFlags.DEFAULT);
+            if (name != null && name.last_index_of_char ('.') > 0) {
+                name_without_ext = name.substring (0, name.last_index_of_char ('.'));
+                ext = name.substring (name.last_index_of_char ('.') + 1);
+            }
         }
     }
 
@@ -59,5 +67,7 @@ public class Sarge.Components.FileItem : Object {
         size = "DIR";
         path = parent_dir.get_path ();
         numeric_size = -1;
+        name_without_ext = name;
+        ext = "";
     }
 }
