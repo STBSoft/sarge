@@ -128,7 +128,7 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
         size_column.set_sort_column_id (Column.SIZE);
         internal_view.append_column (size_column);
 
-        //  internal_view.headers_clickable = true;
+        internal_view.row_activated.connect (on_row_activated);
         return internal_view;
     }
 
@@ -260,5 +260,18 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
     private void show_only_ext_func (Gtk.CellLayout ext_layout, Gtk.CellRenderer ext_renderer,
             Gtk.TreeModel list, Gtk.TreeIter iter) {
         ext_renderer.set_property ("text", get_item (list, iter).ext);
+    }
+
+    private void on_row_activated (Gtk.TreePath path, Gtk.TreeViewColumn column) {
+        var tree_view = (Gtk.TreeView) column.get_tree_view ();
+        var list = tree_view.model;
+        Gtk.TreeIter iter;
+        if (list.get_iter (out iter, path)) {
+            var item = get_item (list, iter);
+            if (item.is_dir) {
+                dir = item.path;
+                update_view ();
+            }
+        }
     }
 }
