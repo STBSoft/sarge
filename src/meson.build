@@ -1,7 +1,7 @@
 # List of source files
 sarge_files = files (
     'SargeApp.vala',
-    'Components/PanelGrid.vala',
+    'Components/PanelBox.vala',
     'Components/FileItem.vala'
 )
 

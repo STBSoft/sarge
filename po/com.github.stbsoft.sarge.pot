@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: com.github.stbsoft.sarge\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-10-17 22:56+0100\n"
+"POT-Creation-Date: 2020-10-25 21:26+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,19 +17,23 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/Components/PanelGrid.vala:29
+#: src/Components/PanelBox.vala:29
 msgid "Left"
 msgstr ""
 
-#: src/Components/PanelGrid.vala:31
+#: src/Components/PanelBox.vala:31
 msgid "Right"
 msgstr ""
 
-#: src/Components/PanelGrid.vala:43
+#: src/Components/PanelBox.vala:43
 msgid "Name"
 msgstr ""
 
-#: src/Components/PanelGrid.vala:45
+#: src/Components/PanelBox.vala:45
+msgid "Ext"
+msgstr ""
+
+#: src/Components/PanelBox.vala:47
 msgid "Size"
 msgstr ""
 

@@ -19,7 +19,7 @@
 * Authored by: Tibor Sandor <sandort84@gmail.com>
 */
 
-public class Sarge.Components.PanelGrid : Gtk.Grid {
+public class Sarge.Components.PanelBox : Gtk.Box {
     public enum Which {
         LEFT, RIGHT;
 
@@ -50,14 +50,16 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
         }
     }
 
-    private Which which {get; set;}
+    public Which which {get; set;}
     private string home {get; set;}
     public bool show_hidden_files {get; set;}
-    private Gtk.TreeView view {get; set;}
+    public Gtk.TreeView view {get; set;}
     private string dir {get; set;}
+    // TODO: try : https://stackoverflow.com/questions/61263462/how-to-assign-hidden-data-to-gtk-treeview-row-in-order-to-catch-them-with-gtk
     private HashTable<string, FileItem> items {get; set;}
+    private string selection {get; set;}
 
-    public PanelGrid (Which which, string home, bool show_hidden_files) {
+    public PanelBox (Which which, string home, bool show_hidden_files) {
         this.which = which;
         this.home = home;
         this.show_hidden_files = show_hidden_files;
@@ -67,18 +69,11 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
         set_has_window (false);
         dir = home + "/Downloads";  // TODO: dir from saved history in settings
         var label = new Gtk.Label (dir);
-        add (label);
-        build_contents ();
-    }
-
-    private void build_contents () {
+        pack_start (label, false, false, 0);
         view = create_view ();
+        var label2 = new Gtk.Label ("Bla");
+        pack_end (label2, false, false, 0);
         update_view ();
-        var scrolled_window = new Gtk.ScrolledWindow (null, null) {
-            hscrollbar_policy = Gtk.PolicyType.NEVER
-        };
-        scrolled_window.add (view);
-        add (scrolled_window);
     }
 
     private Gtk.TreeView create_view () {
@@ -129,6 +124,17 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
         internal_view.append_column (size_column);
 
         internal_view.row_activated.connect (on_row_activated);
+        internal_view.cursor_changed.connect (on_cursor_changed);
+        //  internal_view.key_release_event.connect (on_key_release);
+        internal_view.get_selection ().mode = Gtk.SelectionMode.NONE;
+
+        var scrolled_window = new Gtk.ScrolledWindow (null, null) {
+            valign = Gtk.Align.START,
+            propagate_natural_height = true,
+            hscrollbar_policy = Gtk.PolicyType.NEVER
+        };
+        scrolled_window.add (internal_view);
+        pack_start (scrolled_window, true, true, 0);
         return internal_view;
     }
 
@@ -167,7 +173,7 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
         var values = items.get_values ();
         for (int i = 0; i < values.length (); i++) {
             var item = values.nth_data (i);
-            list.insert_with_values (out iter, -1, Column.NAME, item.name, Column.SIZE, item.size);
+            list.insert_with_values (out iter, -1, Column.NAME, item.name, Column.EXT, item.ext, Column.SIZE, item.size);
         }
     }
 
@@ -274,4 +280,51 @@ public class Sarge.Components.PanelGrid : Gtk.Grid {
             }
         }
     }
+   
+    private void on_cursor_changed () {
+        //  stdout.printf ("yo!\n");
+        Gtk.TreePath path;
+        Gtk.TreeViewColumn column;
+        view.get_cursor (out path, out column);
+        if (path != null) {
+            Gtk.TreeIter iter;
+            var list = view.model;
+            if (list.get_iter (out iter, path)) {
+                var item = get_item (list, iter);
+                stdout.printf ("%s\n", item.name);
+            }
+        }
+    }
+
+    //  public signal void panel_activated (); 
+
+    //  public void activate_panel () {
+    //      var list = view.model;
+    //      if (selection == null) {
+    //          Gtk.TreeIter iter;
+    //          list.get_iter_first(out iter);
+    //          view.get_selection ().select_iter (iter);
+    //      } else {
+
+    //      }
+    //      panel_activated();
+    //  }
+
+    //  public void deactivate_panel () {
+    //      stdout.printf ("deactivate: %s\n", which.to_string ());
+    //      Gtk.TreeModel model;
+    //      Gtk.TreeIter iter;
+    //      if (view.get_selection ().get_selected (out model, out iter)) {
+    //          selection = get_item (model, iter).name;
+    //      }
+    //      stdout.printf ("saving selection: %s\n", selection);
+    //      view.get_selection ().unselect_all ();
+    //  }
+
+    //  private bool on_key_release (Gdk.EventKey key) {
+    //      if (key.type == Gdk.EventType.KEY_RELEASE && key.keyval == 65289) {
+    //          deactivate_panel ();
+    //      }
+    //      return true;
+    //  }
 }

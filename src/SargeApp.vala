@@ -26,6 +26,10 @@ public class Sarge.SargeApp : Gtk.Application {
     public const string APPLICATION_ID = "com.github.stbsoft.sarge";
     private GLib.Settings settings = new GLib.Settings (APPLICATION_ID);
 
+    private PanelBox left {get; set;}
+    private PanelBox right {get; set;}
+    private PanelBox.Which active_panel {get; set;}
+
     public SargeApp () {
         Object (
             application_id: APPLICATION_ID,
@@ -46,23 +50,21 @@ public class Sarge.SargeApp : Gtk.Application {
             title = "Sarge"
         };
 
-        var main_grid = new Gtk.Grid ();
-        main_grid.orientation = Gtk.Orientation.VERTICAL;
+        var main_grid = new Gtk.Grid () {
+            orientation = Gtk.Orientation.VERTICAL
+        };
         var panel_grid = new Gtk.Grid () {
             column_homogeneous = true
         };
 
-        var left = new PanelGrid (PanelGrid.Which.LEFT, home, show_hidden_files);
-        //  stdout.printf ("%s\n", left.get_state ().to_string ());
-        //  var blue = new Gdk.RGBA ();
-        //  blue.blue = 1;
-        //  blue.red = 0;
-        //  blue.green = 0;
-        //  blue.alpha = 1;
-        //  left.override_background_color (Gtk.StateFlags.NORMAL, blue);
-        var right = new PanelGrid (PanelGrid.Which.RIGHT, home, show_hidden_files);
+        left = new PanelBox (PanelBox.Which.LEFT, home, show_hidden_files);
+        right = new PanelBox (PanelBox.Which.RIGHT, home, show_hidden_files);
         panel_grid.attach (left, 0, 0, 1, 1);
         panel_grid.attach_next_to (right, left, Gtk.PositionType.RIGHT, 1, 1);
+        var focus_chain = new List<Gtk.Widget> ();
+        focus_chain.append (left.view);
+        focus_chain.append (right.view);
+        main_window.set_focus_chain (focus_chain);
 
         var button_grid = new Gtk.Grid () {
             column_homogeneous = true
@@ -100,7 +102,20 @@ public class Sarge.SargeApp : Gtk.Application {
         main_window.show_all ();
 
         main_window.size_allocate.connect (on_size_allocate);
+        main_window.set_focus.connect_after ((widget) => {
+            if (widget == null) {
+                left.view.grab_focus ();
+            }
+        });
     }
+    /*
+.view:focus {
+  color: @bg_color;
+  background-color: @fg_color;
+  outline: none;
+}
+    
+    */
 
     public static int main (string[] args) {
         return new SargeApp ().run (args);
@@ -113,4 +128,23 @@ public class Sarge.SargeApp : Gtk.Application {
         settings.set_int ("width", new_width);
         settings.set_int ("height", new_height);
     }
+
+    //  private void on_panel_activated (PanelBox panel) {
+    //      if (panel.which == PanelBox.Which.LEFT) {
+    //          right.deactivate_panel ();
+    //      } else {
+    //          left.deactivate_panel ();
+    //      }
+    //  }
+
+    //  private void activate_panel (PanelBox.Which which) {
+    //      active_panel = which;
+    //      if (active_panel == PanelBox.Which.LEFT) {
+    //          left.activate_panel ();
+    //      } else {
+    //          right.activate_panel ();
+    //      }
+        
+    //  }
+
 }
