@@ -20,7 +20,7 @@
 */
 
 public class Sarge.Components.PanelBox : Gtk.Box {
-    public enum Which {
+    public enum Side {
         LEFT, RIGHT;
 
         public string humanise () {
@@ -50,7 +50,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         }
     }
 
-    public Which which {get; set;}
+    public Side side {get; set;}
     private string home {get; set;}
     public bool show_hidden_files {get; set;}
     public Gtk.TreeView view {get; set;}
@@ -59,8 +59,8 @@ public class Sarge.Components.PanelBox : Gtk.Box {
     private HashTable<string, FileItem> items {get; set;}
     private string selection {get; set;}
 
-    public PanelBox (Which which, string home, bool show_hidden_files) {
-        this.which = which;
+    public PanelBox (Side side, string home, bool show_hidden_files) {
+        this.side = side;
         this.home = home;
         this.show_hidden_files = show_hidden_files;
         items = new HashTable<string, FileItem> (str_hash, str_equal);
@@ -173,7 +173,11 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         var values = items.get_values ();
         for (int i = 0; i < values.length (); i++) {
             var item = values.nth_data (i);
-            list.insert_with_values (out iter, -1, Column.NAME, item.name, Column.EXT, item.ext, Column.SIZE, item.size);
+            list.insert_with_values (out iter, -1,
+                    Column.NAME, item.name,
+                    Column.EXT, item.ext,
+                    Column.SIZE, item.size
+            );
         }
     }
 
@@ -280,7 +284,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
             }
         }
     }
-   
+
     private void on_cursor_changed () {
         //  stdout.printf ("yo!\n");
         Gtk.TreePath path;
@@ -295,36 +299,4 @@ public class Sarge.Components.PanelBox : Gtk.Box {
             }
         }
     }
-
-    //  public signal void panel_activated (); 
-
-    //  public void activate_panel () {
-    //      var list = view.model;
-    //      if (selection == null) {
-    //          Gtk.TreeIter iter;
-    //          list.get_iter_first(out iter);
-    //          view.get_selection ().select_iter (iter);
-    //      } else {
-
-    //      }
-    //      panel_activated();
-    //  }
-
-    //  public void deactivate_panel () {
-    //      stdout.printf ("deactivate: %s\n", which.to_string ());
-    //      Gtk.TreeModel model;
-    //      Gtk.TreeIter iter;
-    //      if (view.get_selection ().get_selected (out model, out iter)) {
-    //          selection = get_item (model, iter).name;
-    //      }
-    //      stdout.printf ("saving selection: %s\n", selection);
-    //      view.get_selection ().unselect_all ();
-    //  }
-
-    //  private bool on_key_release (Gdk.EventKey key) {
-    //      if (key.type == Gdk.EventType.KEY_RELEASE && key.keyval == 65289) {
-    //          deactivate_panel ();
-    //      }
-    //      return true;
-    //  }
 }

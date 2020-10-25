@@ -28,7 +28,7 @@ public class Sarge.SargeApp : Gtk.Application {
 
     private PanelBox left {get; set;}
     private PanelBox right {get; set;}
-    private PanelBox.Which active_panel {get; set;}
+    private PanelBox.Side active_panel {get; set;}
 
     public SargeApp () {
         Object (
@@ -57,8 +57,8 @@ public class Sarge.SargeApp : Gtk.Application {
             column_homogeneous = true
         };
 
-        left = new PanelBox (PanelBox.Which.LEFT, home, show_hidden_files);
-        right = new PanelBox (PanelBox.Which.RIGHT, home, show_hidden_files);
+        left = new PanelBox (PanelBox.Side.LEFT, home, show_hidden_files);
+        right = new PanelBox (PanelBox.Side.RIGHT, home, show_hidden_files);
         panel_grid.attach (left, 0, 0, 1, 1);
         panel_grid.attach_next_to (right, left, Gtk.PositionType.RIGHT, 1, 1);
         var focus_chain = new List<Gtk.Widget> ();
@@ -128,23 +128,4 @@ public class Sarge.SargeApp : Gtk.Application {
         settings.set_int ("width", new_width);
         settings.set_int ("height", new_height);
     }
-
-    //  private void on_panel_activated (PanelBox panel) {
-    //      if (panel.which == PanelBox.Which.LEFT) {
-    //          right.deactivate_panel ();
-    //      } else {
-    //          left.deactivate_panel ();
-    //      }
-    //  }
-
-    //  private void activate_panel (PanelBox.Which which) {
-    //      active_panel = which;
-    //      if (active_panel == PanelBox.Which.LEFT) {
-    //          left.activate_panel ();
-    //      } else {
-    //          right.activate_panel ();
-    //      }
-        
-    //  }
-
 }
