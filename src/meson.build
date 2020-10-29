@@ -5,6 +5,7 @@ executable (
         'SargeApp.vala',
         'Components/PanelBox.vala',
         'Components/FileItem.vala',
+        'Components/DriveButton.vala',
         resources
     ],
     dependencies: [

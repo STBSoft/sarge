@@ -60,6 +60,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
     private string selection {get; set;}
     private string last_dir {get; set;}
     private Gtk.Label top_label {get; set;}
+    private Gtk.ButtonBox drive_box {get; set;}
 
     public PanelBox (Side side, string home, bool show_hidden_files) {
         this.side = side;
@@ -69,12 +70,17 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         expand = true;
         orientation = Gtk.Orientation.VERTICAL;
         set_has_window (false);
-        dir = home + "/Downloads";  // TODO: dir from saved history in settings
+        dir = home;  // TODO: dir from saved history in settings
+        drive_box = new Gtk.ButtonBox (Gtk.Orientation.HORIZONTAL) {
+            halign = Gtk.Align.START
+        };
+        pack_start (drive_box, false, false, 0);
         top_label = new Gtk.Label (dir);
         pack_start (top_label, false, false, 0);
         view = create_view ();
         var label2 = new Gtk.Label ("Bla");
         pack_end (label2, false, false, 0);
+        update_drives ();
         update_view ();
     }
 
@@ -148,11 +154,15 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         try {
             var directory = File.new_for_path (dir);
             if (!directory.query_exists ()) {
-                directory = File.new_for_path (home);
+                warning ("directory does notexist: %s\n", dir);
+                dir = home;
+                directory = File.new_for_path (dir);
             }
             var dir_info = directory.query_info ("standard::*", FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null);
             if (dir_info.get_file_type () != FileType.DIRECTORY) {
-                directory = File.new_for_path (home);
+                warning ("directory does notexist: %s\n", dir);
+                dir = home;
+                directory = File.new_for_path (dir);
             }
             if (directory.has_parent (null)) {
                 var item = new FileItem.for_parent_of (directory);
@@ -188,6 +198,27 @@ public class Sarge.Components.PanelBox : Gtk.Box {
                 }
             }
         }
+    }
+
+    public void update_drives () {
+        VolumeMonitor monitor = VolumeMonitor.get ();
+        List<Drive> drives = monitor.get_connected_drives ();
+        foreach (Drive drive in drives) {
+            if (drive.has_volumes ()) {
+                foreach (Volume volume in drive.get_volumes ()) {
+                    var mount = volume.get_mount ();
+                    if (mount != null) {
+                        var button = new DriveButton (mount);
+                        button.clicked.connect (on_drive_button_clicked);
+                        drive_box.pack_start (button, false, false, 0);
+                    }
+                }
+            }
+        }
+    }
+
+    private void on_drive_button_clicked (Gtk.Button source) {
+        stdout.printf ("%s\n", ((DriveButton) source).mount.get_name ());
     }
 
     private int sort_by_name_func (Gtk.TreeModel list, Gtk.TreeIter a, Gtk.TreeIter b) {
