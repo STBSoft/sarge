@@ -58,6 +58,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
     // TODO: try : https://stackoverflow.com/questions/61263462/how-to-assign-hidden-data-to-gtk-treeview-row-in-order-to-catch-them-with-gtk
     private HashTable<string, FileItem> items {get; set;}
     private string selection {get; set;}
+    private string last_dir {get; set;}
 
     public PanelBox (Side side, string home, bool show_hidden_files) {
         this.side = side;
@@ -178,6 +179,12 @@ public class Sarge.Components.PanelBox : Gtk.Box {
                     Column.EXT, item.ext,
                     Column.SIZE, item.size
             );
+            if (last_dir != null && item.path == last_dir) {
+                var last_dir_path = list.get_path (iter);
+                if (last_dir_path != null) {
+                    view.set_cursor (last_dir_path, null, false);
+                }
+            }
         }
     }
 
@@ -279,6 +286,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         if (list.get_iter (out iter, path)) {
             var item = get_item (list, iter);
             if (item.is_dir) {
+                last_dir = dir;
                 dir = item.path;
                 update_view ();
             }
@@ -286,7 +294,6 @@ public class Sarge.Components.PanelBox : Gtk.Box {
     }
 
     private void on_cursor_changed () {
-        //  stdout.printf ("yo!\n");
         Gtk.TreePath path;
         Gtk.TreeViewColumn column;
         view.get_cursor (out path, out column);
