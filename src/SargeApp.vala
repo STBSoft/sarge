@@ -97,8 +97,16 @@ public class Sarge.SargeApp : Gtk.Application {
         main_grid.add (panel_grid);
         main_grid.add (button_grid);
 
-
         main_window.add (main_grid);
+
+        var css_provider = new Gtk.CssProvider ();
+        css_provider.load_from_resource ("/com/github/stbsoft/sarge/style.css");
+        Gtk.StyleContext.add_provider_for_screen (
+            Gdk.Screen.get_default (),
+            css_provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_USER
+        );
+
         main_window.show_all ();
 
         main_window.size_allocate.connect (on_size_allocate);
@@ -108,14 +116,6 @@ public class Sarge.SargeApp : Gtk.Application {
             }
         });
     }
-    /*
-.view:focus {
-  color: @bg_color;
-  background-color: @fg_color;
-  outline: none;
-}
-    
-    */
 
     public static int main (string[] args) {
         return new SargeApp ().run (args);

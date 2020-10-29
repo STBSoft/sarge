@@ -1,0 +1,5 @@
+.view:focus {
+    color: @bg_color;
+    background-color: @fg_color;
+    outline: none;
+}
