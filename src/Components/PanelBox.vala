@@ -59,6 +59,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
     private HashTable<string, FileItem> items {get; set;}
     private string selection {get; set;}
     private string last_dir {get; set;}
+    private Gtk.Label top_label {get; set;}
 
     public PanelBox (Side side, string home, bool show_hidden_files) {
         this.side = side;
@@ -69,8 +70,8 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         orientation = Gtk.Orientation.VERTICAL;
         set_has_window (false);
         dir = home + "/Downloads";  // TODO: dir from saved history in settings
-        var label = new Gtk.Label (dir);
-        pack_start (label, false, false, 0);
+        top_label = new Gtk.Label (dir);
+        pack_start (top_label, false, false, 0);
         view = create_view ();
         var label2 = new Gtk.Label ("Bla");
         pack_end (label2, false, false, 0);
@@ -140,6 +141,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
     }
 
     private void update_view () {
+        top_label.label = dir;
         var list = (Gtk.ListStore) view.model;
         list.clear ();
         items.remove_all ();
@@ -289,6 +291,15 @@ public class Sarge.Components.PanelBox : Gtk.Box {
                 last_dir = dir;
                 dir = item.path;
                 update_view ();
+            } else if (item.is_regular) {
+                var file = File.new_for_path (item.path);
+                if (file.query_exists ()) {
+                    try {
+                        AppInfo.launch_default_for_uri (file.get_uri (), null);
+                    } catch (Error e) {
+                        warning ("Unable to launch %s\n", item.path);
+                    }
+                }
             }
         }
     }

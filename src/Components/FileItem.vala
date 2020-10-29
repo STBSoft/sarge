@@ -33,6 +33,7 @@ public class Sarge.Components.FileItem : Object {
     public bool is_parent {get; set;}
     public int64 numeric_size {get; set;}
     public string name_without_ext {get; set;}
+    public bool is_regular {get; set;}
 
     private FileItem () {
     }
@@ -42,6 +43,7 @@ public class Sarge.Components.FileItem : Object {
         name = info.get_name ();
         ext = "";
         is_dir = info.get_file_type () == FileType.DIRECTORY;
+        is_regular = info.get_file_type () == FileType.REGULAR;
         is_parent = false;
         path = file.get_path ();
         name_without_ext = name;
@@ -63,6 +65,7 @@ public class Sarge.Components.FileItem : Object {
         var parent_dir = directory.get_parent ();
         name = "..";
         is_dir = true;
+        is_regular = false;
         is_parent = true;
         size = "DIR";
         path = parent_dir.get_path ();
