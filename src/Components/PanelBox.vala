@@ -60,7 +60,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
     private string selection {get; set;}
     private string last_dir {get; set;}
     private Gtk.Label top_label {get; set;}
-    private Gtk.ButtonBox drive_box {get; set;}
+    private Gtk.ButtonBox navigation_box {get; set;}
 
     public PanelBox (Side side, string home, bool show_hidden_files) {
         this.side = side;
@@ -71,16 +71,17 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         orientation = Gtk.Orientation.VERTICAL;
         set_has_window (false);
         dir = home;  // TODO: dir from saved history in settings
-        drive_box = new Gtk.ButtonBox (Gtk.Orientation.HORIZONTAL) {
+        navigation_box = new Gtk.ButtonBox (Gtk.Orientation.HORIZONTAL) {
+            hexpand = true,
             halign = Gtk.Align.START
         };
-        pack_start (drive_box, false, false, 0);
+        pack_start (navigation_box, false, false, 0);
         top_label = new Gtk.Label (dir);
         pack_start (top_label, false, false, 0);
         view = create_view ();
         var label2 = new Gtk.Label ("Bla");
         pack_end (label2, false, false, 0);
-        update_drives ();
+        update_volumes ();
         update_view ();
     }
 
@@ -93,7 +94,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         list.set_sort_func (Column.SIZE, sort_by_size_func);
 
         var internal_view = new Gtk.TreeView () {
-            expand = true,
+            valign = Gtk.Align.START,
             enable_grid_lines = Gtk.TreeViewGridLines.VERTICAL,
             model = list
         };
@@ -199,7 +200,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         }
     }
 
-    public void update_drives () {
+    public void update_volumes () {
         VolumeMonitor monitor = VolumeMonitor.get ();
         var volumes = monitor.get_volumes ();
         foreach (Volume volume in volumes) {
@@ -207,10 +208,10 @@ public class Sarge.Components.PanelBox : Gtk.Box {
             if (mount != null) {
                 var button = new DriveButton.for_mount (mount);
                 button.clicked.connect (on_mount_button_clicked);
-                drive_box.pack_start (button, false, false, 0);
+                navigation_box.pack_start (button, false, false, 0);
             } else {
                 var button = new DriveButton.for_volume (volume);
-                drive_box.pack_start (button, false, false, 0);
+                navigation_box.pack_start (button, false, false, 0);
             }
         }
     }
