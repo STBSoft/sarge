@@ -184,6 +184,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
 
         Gtk.TreeIter iter;
         var values = items.get_values ();
+        bool cursor_set = false;
         for (int i = 0; i < values.length (); i++) {
             var item = values.nth_data (i);
             list.insert_with_values (out iter, -1,
@@ -195,6 +196,15 @@ public class Sarge.Components.PanelBox : Gtk.Box {
                 var last_dir_path = list.get_path (iter);
                 if (last_dir_path != null) {
                     view.set_cursor (last_dir_path, null, false);
+                    cursor_set = true;
+                }
+            }
+        }
+        if (!cursor_set) {
+            if (list.get_iter_first (out iter)) {
+                var path = list.get_path (iter);
+                if (path != null) {
+                    view.set_cursor (path, null, false);
                 }
             }
         }
