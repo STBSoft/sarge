@@ -22,10 +22,23 @@
 public class Sarge.Components.DriveButton : Gtk.Button {
 
     public Mount mount {get; set;}
+    public Volume volume {get; set;}
     
-    public DriveButton (Mount mount) {
-        this.mount = mount;
-        label = mount.get_name ();
+    private DriveButton () {
         can_focus = false;
+    }
+
+    public DriveButton.for_mount (Mount mount) {
+        this ();
+        this.mount = mount;
+        this.volume = mount.get_volume ();
+        label = mount.get_name ();
+    }
+
+    public DriveButton.for_volume (Volume volume) {
+        this ();
+        sensitive = false; // for now
+        this.volume = volume;
+        label = volume.get_name (); 
     }
 }

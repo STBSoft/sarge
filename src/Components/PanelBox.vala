@@ -132,8 +132,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         internal_view.append_column (size_column);
 
         internal_view.row_activated.connect (on_row_activated);
-        internal_view.cursor_changed.connect (on_cursor_changed);
-        //  internal_view.key_release_event.connect (on_key_release);
+        //  internal_view.cursor_changed.connect (on_cursor_changed);
         internal_view.get_selection ().mode = Gtk.SelectionMode.NONE;
 
         var scrolled_window = new Gtk.ScrolledWindow (null, null) {
@@ -202,44 +201,87 @@ public class Sarge.Components.PanelBox : Gtk.Box {
 
     public void update_drives () {
         VolumeMonitor monitor = VolumeMonitor.get ();
-        List<Drive> drives = monitor.get_connected_drives ();
-        foreach (Drive drive in drives) {
-            if (drive.has_volumes ()) {
-                foreach (Volume volume in drive.get_volumes ()) {
-                    var mount = volume.get_mount ();
-                    if (mount != null) {
-                        var button = new DriveButton (mount);
-                        button.clicked.connect (on_drive_button_clicked);
-                        drive_box.pack_start (button, false, false, 0);
-                    }
-                }
+        var volumes = monitor.get_volumes ();
+        foreach (Volume volume in volumes) {
+            var mount = volume.get_mount ();
+            if (mount != null) {
+                var button = new DriveButton.for_mount (mount);
+                button.clicked.connect (on_mount_button_clicked);
+                drive_box.pack_start (button, false, false, 0);
+            } else {
+                var button = new DriveButton.for_volume (volume);
+                drive_box.pack_start (button, false, false, 0);
             }
         }
     }
 
-    private void on_drive_button_clicked (Gtk.Button source) {
-        stdout.printf ("%s\n", ((DriveButton) source).mount.get_name ());
+    private void on_mount_button_clicked (Gtk.Button source) {
+        var mount = ((DriveButton) source).mount;
+        dir = mount.get_default_location ().get_path ();
+        update_view ();
     }
 
     private int sort_by_name_func (Gtk.TreeModel list, Gtk.TreeIter a, Gtk.TreeIter b) {
         var item_a = get_item (list, a);
         var item_b = get_item (list, b);
-        var basic_result = basic_compare (item_a, item_b, (Gtk.ListStore) list);
+        var basic_result = dir_compare (item_a, item_b, (Gtk.ListStore) list);
         if (basic_result != 0) {
             return basic_result;
         }
         var name_a = item_a.name.normalize ();
         var name_b = item_b.name.normalize ();
-        if (name_a < name_b) {
-            return -1;
+        var numeric_a = 0;
+        var numeric_b = 0;
+        for (var i = 0; i < name_a.length; i++) {
+            if (i == name_b.length) {
+                return 1;
+            }
+            var char_a = name_a.get_char (i);
+            var char_b = name_b.get_char (i);
+            if (char_a.isdigit () && char_b.isdigit ()) {
+                numeric_a *= 10;
+                numeric_a += char_a.digit_value ();
+                numeric_b *= 10;
+                numeric_b += char_b.digit_value ();
+                continue;
+            }
+            if (char_a.isdigit () || char_b.isdigit ()) {
+                if (numeric_a == 0) {
+                    return char_a.isdigit () ? -1 : 1;
+                }
+                if (char_a.isdigit ()) {
+                    numeric_a *= 10;
+                    numeric_a += char_a.digit_value ();
+                }
+                if (char_b.isdigit ()) {
+                    numeric_b *= 10;
+                    numeric_b += char_b.digit_value ();
+                }
+            }
+            if (numeric_a != 0 || numeric_b != 0) {
+                if (numeric_a != numeric_b) {
+                    return numeric_a - numeric_b;
+                }
+            }
+            numeric_a = 0;
+            numeric_b = 0;
+            char_a = char_a.tolower ();
+            char_b = char_b.tolower ();
+            if (char_a == char_b) {
+                continue;
+            }
+            if (char_a < char_b) {
+                return -1;
+            }
+            return 1;
         }
-        return 1;
+        return numeric_a - numeric_b;
     }
 
     private int sort_by_ext_func (Gtk.TreeModel list, Gtk.TreeIter a, Gtk.TreeIter b) {
         var item_a = get_item (list, a);
         var item_b = get_item (list, b);
-        var basic_result = basic_compare (item_a, item_b, (Gtk.ListStore) list);
+        var basic_result = dir_compare (item_a, item_b, (Gtk.ListStore) list);
         if (basic_result != 0) {
             return basic_result;
         }
@@ -257,7 +299,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
     private int sort_by_size_func (Gtk.TreeModel list, Gtk.TreeIter a, Gtk.TreeIter b) {
         var item_a = get_item (list, a);
         var item_b = get_item (list, b);
-        var basic_result = basic_compare (item_a, item_b, (Gtk.ListStore) list);
+        var basic_result = dir_compare (item_a, item_b, (Gtk.ListStore) list);
         if (basic_result != 0) {
             return basic_result;
         }
@@ -272,7 +314,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         return 0;
     }
 
-    private static int basic_compare (FileItem item_a, FileItem item_b, Gtk.ListStore list) {
+    private static int dir_compare (FileItem item_a, FileItem item_b, Gtk.ListStore list) {
         var reverse = 1;
         int sort_column;
         Gtk.SortType sort_type;
@@ -335,17 +377,17 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         }
     }
 
-    private void on_cursor_changed () {
-        Gtk.TreePath path;
-        Gtk.TreeViewColumn column;
-        view.get_cursor (out path, out column);
-        if (path != null) {
-            Gtk.TreeIter iter;
-            var list = view.model;
-            if (list.get_iter (out iter, path)) {
-                var item = get_item (list, iter);
-                stdout.printf ("%s\n", item.name);
-            }
-        }
-    }
+    //  private void on_cursor_changed () {
+    //      Gtk.TreePath path;
+    //      Gtk.TreeViewColumn column;
+    //      view.get_cursor (out path, out column);
+    //      if (path != null) {
+    //          Gtk.TreeIter iter;
+    //          var list = view.model;
+    //          if (list.get_iter (out iter, path)) {
+    //              var item = get_item (list, iter);
+    //              stdout.printf ("cursor: %s\n", item.name);
+    //          }
+    //      }
+    //  }
 }
