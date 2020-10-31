@@ -115,6 +115,39 @@ public class Sarge.SargeApp : Gtk.Application {
                 left.view.grab_focus ();
             }
         });
+
+        VolumeMonitor monitor = VolumeMonitor.get ();
+        monitor.mount_added.connect (() => {
+            left.update_volumes (monitor.get_volumes ());
+            right.update_volumes (monitor.get_volumes ());
+        });
+        monitor.mount_changed.connect (() => {
+            left.update_volumes (monitor.get_volumes ());
+            right.update_volumes (monitor.get_volumes ());
+        });
+        monitor.mount_pre_unmount.connect (() => {
+            left.update_volumes (monitor.get_volumes ());
+            right.update_volumes (monitor.get_volumes ());
+        });
+        monitor.mount_removed.connect (() => {
+            left.update_volumes (monitor.get_volumes ());
+            right.update_volumes (monitor.get_volumes ());
+        });
+        monitor.volume_added.connect (() => {
+            left.update_volumes (monitor.get_volumes ());
+            right.update_volumes (monitor.get_volumes ());
+        });
+        monitor.volume_changed.connect (() => {
+            left.update_volumes (monitor.get_volumes ());
+            right.update_volumes (monitor.get_volumes ());
+        });
+        monitor.volume_removed.connect (() => {
+            left.update_volumes (monitor.get_volumes ());
+            right.update_volumes (monitor.get_volumes ());
+        });
+
+        left.update_volumes (monitor.get_volumes ());
+        right.update_volumes (monitor.get_volumes ());
     }
 
     public static int main (string[] args) {

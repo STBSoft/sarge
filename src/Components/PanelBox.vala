@@ -81,7 +81,6 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         view = create_view ();
         var label2 = new Gtk.Label ("Bla");
         pack_end (label2, false, false, 0);
-        update_volumes ();
         update_view ();
     }
 
@@ -146,8 +145,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         return internal_view;
     }
 
-    private void update_view () {
-        top_label.label = dir;
+    private void update_view () {   
         var list = (Gtk.ListStore) view.model;
         list.clear ();
         items.remove_all ();
@@ -208,22 +206,27 @@ public class Sarge.Components.PanelBox : Gtk.Box {
                 }
             }
         }
+        top_label.label = dir;
+        view.grab_focus ();
     }
 
-    public void update_volumes () {
-        VolumeMonitor monitor = VolumeMonitor.get ();
-        var volumes = monitor.get_volumes ();
+    public void update_volumes (List<Volume> volumes) {
+        foreach (Gtk.Widget child in navigation_box.get_children ()) {
+            navigation_box.remove (child);
+        }
         foreach (Volume volume in volumes) {
             var mount = volume.get_mount ();
-            if (mount != null) {
+            if (mount == null) {
+                var button = new DriveButton.for_volume (volume);
+                navigation_box.pack_start (button, false, false, 0);
+            } else {
+                print ("mount: %s\n", mount.get_name ());
                 var button = new DriveButton.for_mount (mount);
                 button.clicked.connect (on_mount_button_clicked);
                 navigation_box.pack_start (button, false, false, 0);
-            } else {
-                var button = new DriveButton.for_volume (volume);
-                navigation_box.pack_start (button, false, false, 0);
             }
         }
+        navigation_box.show_all ();
     }
 
     private void on_mount_button_clicked (Gtk.Button source) {
