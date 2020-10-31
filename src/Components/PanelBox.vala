@@ -145,7 +145,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         return internal_view;
     }
 
-    private void update_view () {   
+    private void update_view () {
         var list = (Gtk.ListStore) view.model;
         list.clear ();
         items.remove_all ();

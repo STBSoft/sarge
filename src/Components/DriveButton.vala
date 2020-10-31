@@ -23,7 +23,7 @@ public class Sarge.Components.DriveButton : Gtk.Button {
 
     public Mount mount {get; set;}
     public Volume volume {get; set;}
-    
+
     private DriveButton () {
         can_focus = false;
     }
@@ -39,6 +39,6 @@ public class Sarge.Components.DriveButton : Gtk.Button {
         this ();
         sensitive = false; // for now
         this.volume = volume;
-        label = volume.get_name (); 
+        label = volume.get_name ();
     }
 }
