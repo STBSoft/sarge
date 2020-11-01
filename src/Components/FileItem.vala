@@ -63,6 +63,11 @@ public class Sarge.Components.FileItem : Object {
 
     public FileItem.for_parent_of (File directory) {
         var parent_dir = directory.get_parent ();
+        try {
+            icon = Gtk.IconTheme.get_default ().load_icon ("go-up", 22, Gtk.IconLookupFlags.DIR_LTR);
+        } catch (Error e) {
+            error ("Error: %s\n", e.message);
+        }
         name = "..";
         is_dir = true;
         is_regular = false;

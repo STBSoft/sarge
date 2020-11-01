@@ -35,10 +35,12 @@ public class Sarge.Components.PanelBox : Gtk.Box {
     }
 
     public enum Column {
-        NAME, EXT, SIZE;
+        ICON, NAME, EXT, SIZE;
 
         public string humanise () {
             switch (this) {
+                case ICON:
+                    return _("Icon");
                 case NAME:
                     return _("Name");
                 case EXT:
@@ -85,8 +87,8 @@ public class Sarge.Components.PanelBox : Gtk.Box {
     }
 
     private Gtk.TreeView create_view () {
-        var list = new Gtk.ListStore (3, typeof (string), typeof (string), typeof (string));
-        list.set_sort_column_id (0, Gtk.SortType.ASCENDING); // TODO: sort column and direction from settings
+        var list = new Gtk.ListStore (4, typeof (Icon), typeof (string), typeof (string), typeof (string));
+        list.set_sort_column_id (1, Gtk.SortType.ASCENDING); // TODO: sort column and direction from settings
 
         list.set_sort_func (Column.NAME, sort_by_name_func);
         list.set_sort_func (Column.EXT, sort_by_ext_func);
@@ -101,12 +103,18 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         var name_renderer = new Gtk.CellRendererText () {
             ellipsize = Pango.EllipsizeMode.MIDDLE
         };
-        var name_column = new Gtk.TreeViewColumn.with_attributes (
-            Column.NAME.humanise (), name_renderer, "text", Column.NAME
-        ) {
+        var icon_renderer = new Gtk.CellRendererPixbuf ();
+        var name_column = new Gtk.TreeViewColumn () {
+            title = Column.NAME.humanise (),
             expand = true,
             sort_indicator = true
         };
+        name_column.pack_start (icon_renderer, false);
+        name_column.pack_start (name_renderer, true);
+
+        name_column.add_attribute (icon_renderer, "gicon", 0);
+        name_column.add_attribute (name_renderer, "text", 1);
+
         name_column.set_cell_data_func (name_renderer, name_without_ext_func);
         name_column.set_sort_column_id (Column.NAME);
         internal_view.append_column (name_column);
@@ -186,6 +194,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         for (int i = 0; i < values.length (); i++) {
             var item = values.nth_data (i);
             list.insert_with_values (out iter, -1,
+                    Column.ICON, item.icon,
                     Column.NAME, item.name,
                     Column.EXT, item.ext,
                     Column.SIZE, item.size

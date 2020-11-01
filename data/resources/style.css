@@ -1,9 +1,9 @@
 .view {
-    background-color: @bg_color;
+    background-color: @theme_bg_color;
 }
 
 .view:focus {
-    color: @bg_color;
-    background-color: @fg_color;
+    color: @theme_selected_fg_color;
+    background-color: @theme_selected_bg_color;
     outline: none;
 }
