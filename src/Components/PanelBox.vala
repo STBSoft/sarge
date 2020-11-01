@@ -64,6 +64,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
     private Gtk.Label top_label {get; set;}
     private Gtk.Box navigation_box {get; set;}
     private Gtk.ButtonBox volume_box {get; set;}
+    private FileMonitor monitor {get; set;}
 
     public PanelBox (Side side, string home, bool show_hidden_files) {
         this.side = side;
@@ -93,7 +94,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         standard_navigation_box.pack_start (home_button, false, false, 0);
         navigation_box.pack_start (volume_box, true, true, 0);
         navigation_box.pack_end (standard_navigation_box, false, false, 0);
-        
+
         pack_start (navigation_box, false, false, 0);
         top_label = new Gtk.Label (dir);
         pack_start (top_label, false, false, 0);
@@ -171,6 +172,9 @@ public class Sarge.Components.PanelBox : Gtk.Box {
     }
 
     private void update_view () {
+        if (monitor != null) {
+            monitor.cancel ();
+        }
         var list = (Gtk.ListStore) view.model;
         list.clear ();
         items.remove_all ();
@@ -215,6 +219,10 @@ public class Sarge.Components.PanelBox : Gtk.Box {
                 var item = new FileItem.for_file_info (info, directory.get_child (info.get_name ()));
                 items.insert (item.name, item);
             }
+            monitor = directory.monitor_directory (FileMonitorFlags.WATCH_MOUNTS);
+            monitor.changed.connect (() => {
+                update_view ();
+            });
         } catch (Error e) {
             stderr.printf ("Error: %s\n", e.message);
             return;
