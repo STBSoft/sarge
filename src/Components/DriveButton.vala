@@ -33,6 +33,9 @@ public class Sarge.Components.DriveButton : Gtk.Button {
         this.mount = mount;
         this.volume = mount.get_volume ();
         label = mount.get_name ();
+        always_show_image = true;
+        image = new Gtk.Image.from_gicon (mount.get_icon (), Gtk.IconSize.BUTTON);
+        tooltip_text = _("Mounted on %s").printf (mount.get_default_location ().get_path ());
     }
 
     public DriveButton.for_volume (Volume volume) {
@@ -40,5 +43,8 @@ public class Sarge.Components.DriveButton : Gtk.Button {
         sensitive = false; // for now
         this.volume = volume;
         label = volume.get_name ();
+        always_show_image = true;
+        image = new Gtk.Image.from_gicon (volume.get_icon (), Gtk.IconSize.BUTTON);
+        tooltip_text = _("Volume is not mounted");
     }
 }

@@ -62,7 +62,8 @@ public class Sarge.Components.PanelBox : Gtk.Box {
     private string selection {get; set;}
     private string last_dir {get; set;}
     private Gtk.Label top_label {get; set;}
-    private Gtk.ButtonBox navigation_box {get; set;}
+    private Gtk.Box navigation_box {get; set;}
+    private Gtk.ButtonBox volume_box {get; set;}
 
     public PanelBox (Side side, string home, bool show_hidden_files) {
         this.side = side;
@@ -73,10 +74,26 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         orientation = Gtk.Orientation.VERTICAL;
         set_has_window (false);
         dir = home;  // TODO: dir from saved history in settings
-        navigation_box = new Gtk.ButtonBox (Gtk.Orientation.HORIZONTAL) {
+        navigation_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
+            hexpand = true
+        };
+        volume_box = new Gtk.ButtonBox (Gtk.Orientation.HORIZONTAL) {
             hexpand = true,
             halign = Gtk.Align.START
         };
+        var standard_navigation_box = new Gtk.ButtonBox (Gtk.Orientation.HORIZONTAL);
+        var home_button = new Gtk.Button.from_icon_name ("go-home") {
+            tooltip_text = _("Home"),
+            can_focus = false
+        };
+        home_button.clicked.connect (() => {
+            dir = home;
+            update_view ();
+        });
+        standard_navigation_box.pack_start (home_button, false, false, 0);
+        navigation_box.pack_start (volume_box, true, true, 0);
+        navigation_box.pack_end (standard_navigation_box, false, false, 0);
+        
         pack_start (navigation_box, false, false, 0);
         top_label = new Gtk.Label (dir);
         pack_start (top_label, false, false, 0);
@@ -174,9 +191,24 @@ public class Sarge.Components.PanelBox : Gtk.Box {
                 var item = new FileItem.for_parent_of (directory);
                 items.insert (item.name, item);
             }
-            var enumerator = directory.enumerate_children ("standard::*", FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null);
+            FileEnumerator enumerator;
+            try {
+                enumerator = directory.enumerate_children ("standard::*", FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null);
+            } catch (Error e) {
+                stderr.printf ("Error: %s\n", e.message);
+                return;
+            }
             FileInfo info = null;
-            while ((info = enumerator.next_file (null)) != null) {
+            while (true) {
+                try {
+                    info = enumerator.next_file ();
+                } catch (Error e) {
+                    stderr.printf ("Error: %s\n", e.message);
+                    continue;
+                }
+                if (info == null) {
+                    break;
+                }
                 if (!show_hidden_files && info.get_is_hidden ()) {
                     continue;
                 }
@@ -220,22 +252,22 @@ public class Sarge.Components.PanelBox : Gtk.Box {
     }
 
     public void update_volumes (List<Volume> volumes) {
-        foreach (Gtk.Widget child in navigation_box.get_children ()) {
-            navigation_box.remove (child);
+        foreach (Gtk.Widget child in volume_box.get_children ()) {
+            volume_box.remove (child);
         }
         foreach (Volume volume in volumes) {
             var mount = volume.get_mount ();
             if (mount == null) {
                 var button = new DriveButton.for_volume (volume);
-                navigation_box.pack_start (button, false, false, 0);
+                volume_box.pack_start (button, false, false, 0);
             } else {
                 print ("mount: %s\n", mount.get_name ());
                 var button = new DriveButton.for_mount (mount);
                 button.clicked.connect (on_mount_button_clicked);
-                navigation_box.pack_start (button, false, false, 0);
+                volume_box.pack_start (button, false, false, 0);
             }
         }
-        navigation_box.show_all ();
+        volume_box.show_all ();
     }
 
     private void on_mount_button_clicked (Gtk.Button source) {

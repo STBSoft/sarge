@@ -53,14 +53,13 @@ public class Sarge.SargeApp : Gtk.Application {
         var main_grid = new Gtk.Grid () {
             orientation = Gtk.Orientation.VERTICAL
         };
-        var panel_grid = new Gtk.Grid () {
-            column_homogeneous = true
-        };
-
+        var panel_grid = new Gtk.Grid ();
         left = new PanelBox (PanelBox.Side.LEFT, home, show_hidden_files);
         right = new PanelBox (PanelBox.Side.RIGHT, home, show_hidden_files);
         panel_grid.attach (left, 0, 0, 1, 1);
-        panel_grid.attach_next_to (right, left, Gtk.PositionType.RIGHT, 1, 1);
+        var separator = new Gtk.Separator (Gtk.Orientation.VERTICAL);
+        panel_grid.attach_next_to (separator, left, Gtk.PositionType.RIGHT, 1, 1);
+        panel_grid.attach_next_to (right, separator, Gtk.PositionType.RIGHT, 1, 1);
         var focus_chain = new List<Gtk.Widget> ();
         focus_chain.append (left.view);
         focus_chain.append (right.view);
