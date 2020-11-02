@@ -24,11 +24,18 @@ using Sarge.Components;
 public class Sarge.SargeApp : Gtk.Application {
 
     public const string APPLICATION_ID = "com.github.stbsoft.sarge";
-    private GLib.Settings settings = new GLib.Settings (APPLICATION_ID);
+
+    public bool show_hidden_files {get; set;}
+
+    private Settings settings = new Settings (APPLICATION_ID);
+    private const string SETTING_KEY_SHOW_HIDDEN_FILES = "show-hidden-files";
+    private const string SETTING_KEY_WIDTH = "width";
+    private const string SETTING_KEY_HEIGHT = "height";
 
     private PanelBox left {get; set;}
     private PanelBox right {get; set;}
     private PanelBox.Side active_panel {get; set;}
+
 
     public SargeApp () {
         Object (
@@ -38,11 +45,17 @@ public class Sarge.SargeApp : Gtk.Application {
     }
 
     protected override void activate () {
-        var home = GLib.Environment.get_home_dir ();
+        var home = Environment.get_home_dir ();
 
-        var width = settings.get_int ("width");
-        var height = settings.get_int ("height");
-        var show_hidden_files = settings.get_boolean ("show-hidden-files");
+        var width = settings.get_int (SETTING_KEY_WIDTH);
+        var height = settings.get_int (SETTING_KEY_HEIGHT);
+        settings.bind (
+            SETTING_KEY_SHOW_HIDDEN_FILES,
+            this,
+            "show_hidden_files",
+            SettingsBindFlags.DEFAULT
+        );
+        settings.changed.connect (on_settings_changed);
 
         var main_window = new Gtk.ApplicationWindow (this) {
             default_width = width,
@@ -54,8 +67,8 @@ public class Sarge.SargeApp : Gtk.Application {
             orientation = Gtk.Orientation.VERTICAL
         };
         var panel_grid = new Gtk.Grid ();
-        left = new PanelBox (PanelBox.Side.LEFT, home, show_hidden_files);
-        right = new PanelBox (PanelBox.Side.RIGHT, home, show_hidden_files);
+        left = new PanelBox (PanelBox.Side.LEFT, home, this);
+        right = new PanelBox (PanelBox.Side.RIGHT, home, this);
         panel_grid.attach (left, 0, 0, 1, 1);
         var separator = new Gtk.Separator (Gtk.Orientation.VERTICAL);
         panel_grid.attach_next_to (separator, left, Gtk.PositionType.RIGHT, 1, 1);
@@ -157,7 +170,25 @@ public class Sarge.SargeApp : Gtk.Application {
         int new_width, new_height;
 
         ((Gtk.ApplicationWindow) widget).get_size (out new_width, out new_height);
-        settings.set_int ("width", new_width);
-        settings.set_int ("height", new_height);
+        settings.set_int (SETTING_KEY_WIDTH, new_width);
+        settings.set_int (SETTING_KEY_HEIGHT, new_height);
+    }
+
+    private void on_settings_changed (string key) {
+        switch (key) {
+            case SETTING_KEY_SHOW_HIDDEN_FILES:
+                left.update_view ();
+                right.update_view ();
+                break;
+            case SETTING_KEY_WIDTH:
+                // ignore this
+                break;
+            case SETTING_KEY_HEIGHT:
+                // ignore this
+                break;
+            default:
+                warning ("unknown setting: %s", key);
+                break;
+        }
     }
 }

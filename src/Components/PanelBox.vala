@@ -19,6 +19,8 @@
 * Authored by: Tibor Sandor <sandort84@gmail.com>
 */
 
+using Sarge;
+
 public class Sarge.Components.PanelBox : Gtk.Box {
     public enum Side {
         LEFT, RIGHT;
@@ -54,7 +56,6 @@ public class Sarge.Components.PanelBox : Gtk.Box {
 
     public Side side {get; set;}
     private string home {get; set;}
-    public bool show_hidden_files {get; set;}
     public Gtk.TreeView view {get; set;}
     private string dir {get; set;}
     // TODO: try : https://stackoverflow.com/questions/61263462/how-to-assign-hidden-data-to-gtk-treeview-row-in-order-to-catch-them-with-gtk
@@ -65,11 +66,12 @@ public class Sarge.Components.PanelBox : Gtk.Box {
     private Gtk.Box navigation_box {get; set;}
     private Gtk.ButtonBox volume_box {get; set;}
     private FileMonitor monitor {get; set;}
+    private SargeApp app {get; set;}
 
-    public PanelBox (Side side, string home, bool show_hidden_files) {
+    public PanelBox (Side side, string home, SargeApp app) {
         this.side = side;
         this.home = home;
-        this.show_hidden_files = show_hidden_files;
+        this.app = app;
         items = new HashTable<string, FileItem> (str_hash, str_equal);
         expand = true;
         orientation = Gtk.Orientation.VERTICAL;
@@ -168,10 +170,11 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         };
         scrolled_window.add (internal_view);
         pack_start (scrolled_window, true, true, 0);
+        internal_view.event.connect (on_event);
         return internal_view;
     }
 
-    private void update_view () {
+    public void update_view () {
         if (monitor != null) {
             monitor.cancel ();
         }
@@ -213,7 +216,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
                 if (info == null) {
                     break;
                 }
-                if (!show_hidden_files && info.get_is_hidden ()) {
+                if (!app.show_hidden_files && info.get_is_hidden ()) {
                     continue;
                 }
                 var item = new FileItem.for_file_info (info, directory.get_child (info.get_name ()));
@@ -437,6 +440,28 @@ public class Sarge.Components.PanelBox : Gtk.Box {
                     }
                 }
             }
+        }
+    }
+
+    private bool on_event (Gdk.Event event) {
+        var event_type = event.get_event_type ();
+        switch (event_type) {
+            case Gdk.EventType.KEY_RELEASE: {
+                Gdk.ModifierType modifier;
+                event.get_state (out modifier);
+                if (Gdk.ModifierType.CONTROL_MASK in modifier) {
+                    uint keyval;
+                    event.get_keyval (out keyval);
+                    if (keyval == Gdk.Key.period) {
+                        app.show_hidden_files = !app.show_hidden_files;
+                        return true;
+                    }
+                }
+                return false;
+            }
+            default:
+                // ignore unhandled
+                return false;
         }
     }
 
