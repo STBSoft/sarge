@@ -1,4 +1,4 @@
-# Create a new executable, list the files we want to compile, 
+# Create a new executable, list the files we want to compile,
 # list the dependencies we need, and install
 executable (
     meson.project_name (), [
@@ -9,7 +9,8 @@ executable (
         resources
     ],
     dependencies: [
-        dependency ('gtk+-3.0')
+        dependency ('gtk+-3.0'),
+        dependency ('granite')
     ],
     install: true
 )

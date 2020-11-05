@@ -26,12 +26,18 @@ public class Sarge.SargeApp : Gtk.Application {
     public const string APPLICATION_ID = "com.github.stbsoft.sarge";
 
     public bool show_hidden_files {get; set;}
+    public string[] left_history {get; set;}
+    private Array<string> left_history_backing_array {get; set;}
+    public string[] right_history {get; set;}
+    private Array<string> right_history_backing_array {get; set;}
 
     private Settings settings = new Settings (APPLICATION_ID);
     private const string SETTING_KEY_SHOW_HIDDEN_FILES = "show-hidden-files";
     private const string SETTING_KEY_WIDTH = "width";
     private const string SETTING_KEY_HEIGHT = "height";
-
+    private const string SETTING_KEY_LEFT_HISTORY = "left-history";
+    private const string SETTING_KEY_RIGHT_HISTORY = "right-history";
+    private const uint MAX_HISTORY_LENGTH = 100;
     private PanelBox left {get; set;}
     private PanelBox right {get; set;}
     private PanelBox.Side active_panel {get; set;}
@@ -55,6 +61,26 @@ public class Sarge.SargeApp : Gtk.Application {
             "show_hidden_files",
             SettingsBindFlags.DEFAULT
         );
+        settings.bind (
+            SETTING_KEY_LEFT_HISTORY,
+            this,
+            "left_history",
+            SettingsBindFlags.DEFAULT
+        );
+        settings.bind (
+            SETTING_KEY_RIGHT_HISTORY,
+            this,
+            "right_history",
+            SettingsBindFlags.DEFAULT
+        );
+        left_history_backing_array = new Array<string> ();
+        right_history_backing_array = new Array<string> ();
+        for (var i = 0; i < left_history.length; i++) {
+            left_history_backing_array.append_val (left_history[i]);
+        }
+        for (var i = 0; i < right_history.length; i++) {
+            right_history_backing_array.append_val (right_history[i]);
+        }
         settings.changed.connect (on_settings_changed);
 
         var main_window = new Gtk.ApplicationWindow (this) {
@@ -66,13 +92,13 @@ public class Sarge.SargeApp : Gtk.Application {
         var main_grid = new Gtk.Grid () {
             orientation = Gtk.Orientation.VERTICAL
         };
-        var panel_grid = new Gtk.Grid ();
+        var panel_grid = new Gtk.Grid () {
+            column_homogeneous = true
+        };
         left = new PanelBox (PanelBox.Side.LEFT, home, this);
         right = new PanelBox (PanelBox.Side.RIGHT, home, this);
         panel_grid.attach (left, 0, 0, 1, 1);
-        var separator = new Gtk.Separator (Gtk.Orientation.VERTICAL);
-        panel_grid.attach_next_to (separator, left, Gtk.PositionType.RIGHT, 1, 1);
-        panel_grid.attach_next_to (right, separator, Gtk.PositionType.RIGHT, 1, 1);
+        panel_grid.attach_next_to (right, left, Gtk.PositionType.RIGHT, 1, 1);
         var focus_chain = new List<Gtk.Widget> ();
         focus_chain.append (left.view);
         focus_chain.append (right.view);
@@ -162,10 +188,6 @@ public class Sarge.SargeApp : Gtk.Application {
         right.update_volumes (monitor.get_volumes ());
     }
 
-    public static int main (string[] args) {
-        return new SargeApp ().run (args);
-    }
-
     private void on_size_allocate (Gtk.Widget widget, Gtk.Allocation allocation) {
         int new_width, new_height;
 
@@ -177,8 +199,8 @@ public class Sarge.SargeApp : Gtk.Application {
     private void on_settings_changed (string key) {
         switch (key) {
             case SETTING_KEY_SHOW_HIDDEN_FILES:
-                left.update_view ();
-                right.update_view ();
+                left.refresh_view ();
+                right.refresh_view ();
                 break;
             case SETTING_KEY_WIDTH:
                 // ignore this
@@ -186,9 +208,70 @@ public class Sarge.SargeApp : Gtk.Application {
             case SETTING_KEY_HEIGHT:
                 // ignore this
                 break;
+            case SETTING_KEY_LEFT_HISTORY:
+                // ignore this
+                break;
+            case SETTING_KEY_RIGHT_HISTORY:
+                // ignore this
+                break;
             default:
                 warning ("unknown setting: %s", key);
                 break;
         }
     }
+
+    public void push_history (PanelBox.Side side, string dir) {
+        if (new Granite.Services.System ().history_is_enabled ()) {
+            if (side == PanelBox.Side.LEFT) {
+                left_history = push_to_history (left_history_backing_array, dir);
+            } else {
+                right_history = push_to_history (right_history_backing_array, dir);
+            }
+        } else {
+            clear_history ();
+        }
+    }
+
+    private string[] push_to_history (Array<string> backing_array, string dir) {
+        backing_array.append_val (dir);
+        return backing_array.data;
+    }
+
+    public string? get_last_dir (PanelBox.Side side, string? mount_point = null) {
+        if (new Granite.Services.System ().history_is_enabled ()) {
+            if (side == PanelBox.Side.LEFT) {
+                return get_last_dir_of_side (left_history, mount_point);
+            } else {
+                return get_last_dir_of_side (right_history, mount_point);
+            }
+        } else {
+            clear_history ();
+        }
+        return null;
+    }
+
+    private string? get_last_dir_of_side (string[] history, string? mount_point = null) {
+        if (history.length > 0) {
+            if (mount_point != null) {
+                for (var i = history.length - 1; i > 0; i--) {
+                    if (history[i].index_of (mount_point) == 0) {
+                        return history[i];
+                    }
+                }
+                return null;
+            }
+            return history[history.length - 1];
+        }
+        return null;
+    }
+
+    private void clear_history () {
+        left_history = new string [0];
+        right_history = new string [0];
+    }
+
+    public static int main (string[] args) {
+        return new SargeApp ().run (args);
+    }
+
 }

@@ -61,7 +61,6 @@ public class Sarge.Components.PanelBox : Gtk.Box {
     // TODO: try : https://stackoverflow.com/questions/61263462/how-to-assign-hidden-data-to-gtk-treeview-row-in-order-to-catch-them-with-gtk
     private HashTable<string, FileItem> items {get; set;}
     private string selection {get; set;}
-    private string last_dir {get; set;}
     private Gtk.Label top_label {get; set;}
     private Gtk.Box navigation_box {get; set;}
     private Gtk.ButtonBox volume_box {get; set;}
@@ -72,11 +71,15 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         this.side = side;
         this.home = home;
         this.app = app;
+        get_style_context ().add_class (side.to_string ());
         items = new HashTable<string, FileItem> (str_hash, str_equal);
         expand = true;
         orientation = Gtk.Orientation.VERTICAL;
         set_has_window (false);
-        dir = home;  // TODO: dir from saved history in settings
+        var start_dir = app.get_last_dir (side);
+        if (start_dir == null) {
+            start_dir = home;
+        }
         navigation_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0) {
             hexpand = true
         };
@@ -90,20 +93,21 @@ public class Sarge.Components.PanelBox : Gtk.Box {
             can_focus = false
         };
         home_button.clicked.connect (() => {
-            dir = home;
-            update_view ();
+            update_view (home);
         });
         standard_navigation_box.pack_start (home_button, false, false, 0);
         navigation_box.pack_start (volume_box, true, true, 0);
         navigation_box.pack_end (standard_navigation_box, false, false, 0);
 
         pack_start (navigation_box, false, false, 0);
-        top_label = new Gtk.Label (dir);
+        top_label = new Gtk.Label (dir) {
+            ellipsize = Pango.EllipsizeMode.MIDDLE
+        };
         pack_start (top_label, false, false, 0);
         view = create_view ();
         var label2 = new Gtk.Label ("Bla");
         pack_end (label2, false, false, 0);
-        update_view ();
+        update_view (start_dir, false);
     }
 
     private Gtk.TreeView create_view () {
@@ -174,23 +178,36 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         return internal_view;
     }
 
-    public void update_view () {
+    public void refresh_view () {
+        update_view (null, false, false);
+    }
+
+    private void update_view (string? target_dir = null, bool push_history = true, bool? take_focus = true) {
         if (monitor != null) {
             monitor.cancel ();
         }
         var list = (Gtk.ListStore) view.model;
         list.clear ();
         items.remove_all ();
+        string last_dir = null;
+        if (target_dir != null) {
+            last_dir = dir;
+            dir = target_dir;
+            if (push_history) {
+                app.push_history (side, dir);
+            }
+        }
+
         try {
             var directory = File.new_for_path (dir);
             if (!directory.query_exists ()) {
-                warning ("directory does notexist: %s\n", dir);
+                warning ("directory does not exist: %s\n", dir);
                 dir = home;
                 directory = File.new_for_path (dir);
             }
             var dir_info = directory.query_info ("standard::*", FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null);
             if (dir_info.get_file_type () != FileType.DIRECTORY) {
-                warning ("directory does notexist: %s\n", dir);
+                warning ("directory does not exist: %s\n", dir);
                 dir = home;
                 directory = File.new_for_path (dir);
             }
@@ -224,7 +241,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
             }
             monitor = directory.monitor_directory (FileMonitorFlags.WATCH_MOUNTS);
             monitor.changed.connect (() => {
-                update_view ();
+                refresh_view ();
             });
         } catch (Error e) {
             stderr.printf ("Error: %s\n", e.message);
@@ -259,7 +276,9 @@ public class Sarge.Components.PanelBox : Gtk.Box {
             }
         }
         top_label.label = dir;
-        view.grab_focus ();
+        if (take_focus) {
+            view.grab_focus ();
+        }
     }
 
     public void update_volumes (List<Volume> volumes) {
@@ -283,8 +302,11 @@ public class Sarge.Components.PanelBox : Gtk.Box {
 
     private void on_mount_button_clicked (Gtk.Button source) {
         var mount = ((DriveButton) source).mount;
-        dir = mount.get_default_location ().get_path ();
-        update_view ();
+        string mount_point = app.get_last_dir (side, mount.get_default_location ().get_path ());
+        if (mount_point == null) {
+            mount_point = mount.get_default_location ().get_path ();
+        }
+        update_view (mount_point);
     }
 
     private int sort_by_name_func (Gtk.TreeModel list, Gtk.TreeIter a, Gtk.TreeIter b) {
@@ -427,9 +449,7 @@ public class Sarge.Components.PanelBox : Gtk.Box {
         if (list.get_iter (out iter, path)) {
             var item = get_item (list, iter);
             if (item.is_dir) {
-                last_dir = dir;
-                dir = item.path;
-                update_view ();
+                update_view (item.path);
             } else if (item.is_regular) {
                 var file = File.new_for_path (item.path);
                 if (file.query_exists ()) {

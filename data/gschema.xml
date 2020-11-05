@@ -16,5 +16,21 @@
       <summary>Show hidden files</summary>
       <description>Whether to list hidden files or not in a directory</description>
     </key>
+    <key name="left-history" type="as">
+      <default>[]</default>
+      <summary>History of the left panel</summary>
+      <description>
+        When changing directory or mounted volume on the left panel
+        the new directory will be added to the history of the panel
+      </description>
+    </key>
+    <key name="right-history" type="as">
+      <default>[]</default>
+      <summary>History of the right panel</summary>
+      <description>
+        When changing directory or mounted volume on the right panel
+        the new directory will be added to the history of the panel
+      </description>
+    </key>
   </schema>
 </schemalist>

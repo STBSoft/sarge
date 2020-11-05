@@ -7,3 +7,11 @@
     background-color: @theme_selected_bg_color;
     outline: none;
 }
+
+.SARGE_COMPONENTS_PANEL_BOX_SIDE_RIGHT {
+    border-left: 1px solid @theme_fg_color;
+}
+
+.SARGE_COMPONENTS_PANEL_BOX_SIDE_LEFT {
+    border-right: 1px solid @theme_fg_color;
+}
